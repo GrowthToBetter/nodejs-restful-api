@@ -2,7 +2,7 @@
   "name": "node-restful-api",
   "version": "1.0.0",
   "description": "",
-  "main": "src/main.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "jest -i"
   },
@@ -15,6 +15,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "express": "^5.3.0",
     "joi": "^18.3.2",
