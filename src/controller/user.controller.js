@@ -10,7 +10,51 @@ const register = async (req, res, next) => {
     next(e);
   }
 };
+const login = async (req, res, next) => {
+  try {
+    const token = await userService.login(req.body);
+    res.status(200).json({ data: token, message: "Login successful" });
+  } catch (e) {
+    next(e);
+  }
+};
+
+const get = async (req, res, next) => {
+  try {
+    console.log("REQ.USER:", req.user.username);
+    const result = await userService.getUserByUsername(req.user.username);
+    res
+      .status(200)
+      .json({ data: result, message: "User retrieved successfully" });
+  } catch (e) {
+    next(e);
+  }
+};
+
+const update = async (req, res, next) => {
+  try {
+    const result = await userService.updateUser(req.user.username, req.body);
+    res
+      .status(200)
+      .json({ data: result, message: "User updated successfully" });
+  } catch (e) {
+    next(e);
+  }
+};
+
+const logout = async (req, res, next) => {
+  try {
+    const result = await userService.logout(req.user.username);
+    res.status(200).json({ data: result, message: "Logout successful" });
+  } catch (e) {
+    next(e);
+  }
+};
 
 export default {
-    register,
-}
+  register,
+  login,
+  get,
+  update,
+  logout,
+};
