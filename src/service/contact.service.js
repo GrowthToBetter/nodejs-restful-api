@@ -7,11 +7,16 @@ import {
 } from "../validation/contact.validation.js";
 import { validate } from "../validation/validation.js";
 import { prismaClient } from "../web/database.js";
+import { redisClient } from "../web/redis.js";
+import {
+  toContactResponse,
+  toContactSearchResponse,
+} from "../helper/hateoas.js";
 
 const create = async (user, request) => {
   const validatedUser = validate(createContactValidation, request);
 
-  return prismaClient.contact.create({
+  const createdContact = await prismaClient.contact.create({
     data: {
       ...validatedUser,
       username: user.username,
@@ -24,15 +29,25 @@ const create = async (user, request) => {
       phone: true,
     },
   });
+
+  return toContactResponse(createdContact);
 };
 
 const get = async (user, contactId) => {
   const validatedContactId = validate(getContactValidation, contactId);
+  const cacheKey = `contact:${user.username}:${validatedContactId}`;
+  const cachedContact = await redisClient.get(cacheKey);
+  if (cachedContact) {
+    const parsed = JSON.parse(cachedContact);
+    parsed._fromCache = true;
+    return parsed;
+  }
 
   const contact = await prismaClient.contact.findFirst({
     where: {
       id: validatedContactId,
       username: user.username,
+      deleted_at: null,
     },
     select: {
       id: true,
@@ -47,7 +62,9 @@ const get = async (user, contactId) => {
     throw new ResponseError(404, "Contact not found");
   }
 
-  return contact;
+  const contactResponse = toContactResponse(contact);
+  await redisClient.set(cacheKey, JSON.stringify(contactResponse), "EX", 3600);
+  return contactResponse;
 };
 
 const update = async (user, contactId, request) => {
@@ -57,13 +74,14 @@ const update = async (user, contactId, request) => {
     where: {
       id: validatedContactId,
       username: user.username,
+      deleted_at: null,
     },
   });
   if (!existingContact) {
     throw new ResponseError(404, "Contact not found");
   }
 
-  return prismaClient.contact.update({
+  const updatedContact = await prismaClient.contact.update({
     where: {
       id: validatedContactId,
       username: user.username,
@@ -77,6 +95,9 @@ const update = async (user, contactId, request) => {
       phone: true,
     },
   });
+
+  await redisClient.del(`contact:${user.username}:${validatedContactId}`);
+  return toContactResponse(updatedContact);
 };
 
 const remove = async (user, contactId) => {
@@ -85,16 +106,32 @@ const remove = async (user, contactId) => {
     where: {
       id: validatedContactId,
       username: user.username,
+      deleted_at: null,
     },
   });
   if (!existingContact) {
     throw new ResponseError(404, "Contact not found");
   }
 
-  return prismaClient.contact.delete({
+  await redisClient.del(`contact:${user.username}:${validatedContactId}`);
+
+  await prismaClient.address.updateMany({
+    where: {
+      contact_id: validatedContactId,
+      deleted_at: null,
+    },
+    data: {
+      deleted_at: new Date(),
+    },
+  });
+
+  return prismaClient.contact.update({
     where: {
       id: validatedContactId,
       username: user.username,
+    },
+    data: {
+      deleted_at: new Date(),
     },
   });
 };
@@ -105,6 +142,9 @@ const search = async (user, request) => {
   const filters = [];
   filters.push({
     username: user.username,
+  });
+  filters.push({
+    deleted_at: null,
   });
   if (request.name) {
     filters.push({
@@ -149,14 +189,15 @@ const search = async (user, request) => {
     },
   });
 
-  return {
-    data: contacts,
-    paging: {
+  return toContactSearchResponse(
+    contacts,
+    {
       page: request.page,
       total_items: totalItems,
       total_page: Math.ceil(totalItems / request.size),
     },
-  };
+    request.size,
+  );
 };
 
 export default {

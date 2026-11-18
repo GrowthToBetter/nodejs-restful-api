@@ -1,7 +1,11 @@
 import { prismaClient } from "../src/web/database.js";
+import { redisClient } from "../src/web/redis.js";
 import bcrypt from "bcrypt";
 
 const removeTestUser = async (username = "test") => {
+  await redisClient.del(`user:${username}`);
+  await redisClient.del(`session:${username}`);
+  await redisClient.del(`blacklist:${username}`);
   await prismaClient.address.deleteMany({
     where: { contact: { username } },
   });
@@ -10,6 +14,10 @@ const removeTestUser = async (username = "test") => {
 };
 
 const removeTestContactUser = async () => {
+  const keys = await redisClient.keys("contact:testcontact:*");
+  if (keys.length > 0) {
+    await redisClient.del(...keys);
+  }
   await removeTestUser("testcontact");
 };
 
@@ -24,6 +32,7 @@ const createTestUser = async () => {
       token: "test",
     },
   });
+  await redisClient.set("session:test", "test", "EX", 86400);
 };
 
 const createTestContactUser = async () => {
@@ -37,6 +46,7 @@ const createTestContactUser = async () => {
       token: "testcontact",
     },
   });
+  await redisClient.set("session:testcontact", "testcontact", "EX", 86400);
   await prismaClient.contact.create({
     data: {
       first_name: "John",

@@ -14,6 +14,9 @@ const create = async (req, res, next) => {
 const get = async (req, res, next) => {
   try {
     const contact = await contactService.get(req.user, parseInt(req.params.id));
+    const isCached = !!contact._fromCache;
+    delete contact._fromCache;
+    res.setHeader("X-Cache", isCached ? "HIT" : "MISS");
     res.status(200).json({ data: contact });
   } catch (e) {
     next(e);
@@ -63,6 +66,7 @@ const search = async (req, res, next) => {
     res.status(200).json({
       data: result.data,
       paging: result.paging,
+      _links: result._links,
     });
   } catch (e) {
     next(e);

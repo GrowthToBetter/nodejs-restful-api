@@ -7,6 +7,7 @@ import {
 import { getContactValidation } from "../validation/contact.validation.js";
 import { validate } from "../validation/validation.js";
 import { prismaClient } from "../web/database.js";
+import { toAddressResponse } from "../helper/hateoas.js";
 
 const checkContactMustExists = async (user, contactId) => {
   const validatedContactId = validate(getContactValidation, contactId);
@@ -15,6 +16,7 @@ const checkContactMustExists = async (user, contactId) => {
     where: {
       id: validatedContactId,
       username: user.username,
+      deleted_at: null,
     },
   });
 
@@ -29,7 +31,7 @@ const create = async (user, contactId, request) => {
   const contact = await checkContactMustExists(user, contactId);
   const validatedAddress = validate(createAddressValidation, request);
 
-  return prismaClient.address.create({
+  const createdAddress = await prismaClient.address.create({
     data: {
       ...validatedAddress,
       contact_id: contact.id,
@@ -43,6 +45,8 @@ const create = async (user, contactId, request) => {
       postal_code: true,
     },
   });
+
+  return toAddressResponse(createdAddress, contact.id);
 };
 
 const get = async (user, contactId, addressId) => {
@@ -53,6 +57,7 @@ const get = async (user, contactId, addressId) => {
     where: {
       id: validatedAddressId,
       contact_id: contact.id,
+      deleted_at: null,
     },
     select: {
       id: true,
@@ -68,7 +73,7 @@ const get = async (user, contactId, addressId) => {
     throw new ResponseError(404, "address not found");
   }
 
-  return address;
+  return toAddressResponse(address, contact.id);
 };
 
 const update = async (user, contactId, addressId, request) => {
@@ -80,6 +85,7 @@ const update = async (user, contactId, addressId, request) => {
     where: {
       id: validatedAddressId,
       contact_id: contact.id,
+      deleted_at: null,
     },
   });
 
@@ -87,7 +93,7 @@ const update = async (user, contactId, addressId, request) => {
     throw new ResponseError(404, "address not found");
   }
 
-  return prismaClient.address.update({
+  const updatedAddress = await prismaClient.address.update({
     where: {
       id: validatedAddressId,
     },
@@ -101,6 +107,8 @@ const update = async (user, contactId, addressId, request) => {
       postal_code: true,
     },
   });
+
+  return toAddressResponse(updatedAddress, contact.id);
 };
 
 const remove = async (user, contactId, addressId) => {
@@ -111,6 +119,7 @@ const remove = async (user, contactId, addressId) => {
     where: {
       id: validatedAddressId,
       contact_id: contact.id,
+      deleted_at: null,
     },
   });
 
@@ -118,9 +127,12 @@ const remove = async (user, contactId, addressId) => {
     throw new ResponseError(404, "address not found");
   }
 
-  return prismaClient.address.delete({
+  return prismaClient.address.update({
     where: {
       id: validatedAddressId,
+    },
+    data: {
+      deleted_at: new Date(),
     },
   });
 };
@@ -128,9 +140,10 @@ const remove = async (user, contactId, addressId) => {
 const list = async (user, contactId) => {
   const contact = await checkContactMustExists(user, contactId);
 
-  return prismaClient.address.findMany({
+  const addresses = await prismaClient.address.findMany({
     where: {
       contact_id: contact.id,
+      deleted_at: null,
     },
     select: {
       id: true,
@@ -141,6 +154,8 @@ const list = async (user, contactId) => {
       postal_code: true,
     },
   });
+
+  return addresses.map((address) => toAddressResponse(address, contact.id));
 };
 
 export default {

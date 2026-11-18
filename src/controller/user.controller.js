@@ -21,8 +21,10 @@ const login = async (req, res, next) => {
 
 const get = async (req, res, next) => {
   try {
-    console.log("REQ.USER:", req.user.username);
     const result = await userService.getUserByUsername(req.user.username);
+    const isCached = !!result._fromCache;
+    delete result._fromCache;
+    res.setHeader("X-Cache", isCached ? "HIT" : "MISS");
     res
       .status(200)
       .json({ data: result, message: "User retrieved successfully" });
@@ -44,7 +46,8 @@ const update = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    const result = await userService.logout(req.user.username);
+    const token = req.get("Authorization");
+    const result = await userService.logout(req.user.username, token);
     res.status(200).json({ data: result, message: "Logout successful" });
   } catch (e) {
     next(e);

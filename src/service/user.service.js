@@ -8,7 +8,9 @@ import {
 import { validate } from "../validation/validation.js";
 import bcrypt from "bcrypt";
 import { prismaClient } from "../web/database.js";
+import { redisClient } from "../web/redis.js";
 import { v4 as uuid } from "uuid";
+import { toUserResponse } from "../helper/hateoas.js";
 
 const register = async (userData) => {
   const user = validate(registerUserValidation, userData);
@@ -21,13 +23,14 @@ const register = async (userData) => {
     throw new ResponseError(400, "User already exists");
   }
   user.password = await bcrypt.hash(user.password, 10);
-  return prismaClient.user.create({
+  const createdUser = await prismaClient.user.create({
     data: user,
     select: {
       username: true,
       name: true,
     },
   });
+  return toUserResponse(createdUser);
 };
 
 const login = async (userData) => {
@@ -64,11 +67,21 @@ const login = async (userData) => {
     },
   });
 
+  await redisClient.set(`session:${token}`, existingUser.username, "EX", 86400);
+
   return { token };
 };
 
 const getUserByUsername = async (username) => {
   const user = validate(getUserValidation, username);
+  const cacheKey = `user:${user}`;
+  const cachedUser = await redisClient.get(cacheKey);
+  if (cachedUser) {
+    const parsed = JSON.parse(cachedUser);
+    parsed._fromCache = true;
+    return parsed;
+  }
+
   const existingUser = await prismaClient.user.findUnique({
     where: {
       username: user,
@@ -81,7 +94,10 @@ const getUserByUsername = async (username) => {
   if (!existingUser) {
     throw new ResponseError(404, "User not found");
   }
-  return existingUser;
+
+  const userResponse = toUserResponse(existingUser);
+  await redisClient.set(cacheKey, JSON.stringify(userResponse), "EX", 3600);
+  return userResponse;
 };
 
 const updateUser = async (username, userData) => {
@@ -106,7 +122,7 @@ const updateUser = async (username, userData) => {
   if (user.name) {
     data.name = user.name;
   }
-  return prismaClient.user.update({
+  const updatedUser = await prismaClient.user.update({
     where: {
       username: username,
     },
@@ -116,9 +132,12 @@ const updateUser = async (username, userData) => {
       name: true,
     },
   });
+
+  await redisClient.del(`user:${username}`);
+  return toUserResponse(updatedUser);
 };
 
-const logout = async (username) => {
+const logout = async (username, token) => {
   username = validate(getUserValidation, username);
   const existingUser = await prismaClient.user.findUnique({
     where: {
@@ -128,6 +147,13 @@ const logout = async (username) => {
   if (!existingUser) {
     throw new ResponseError(404, "User not found");
   }
+
+  await redisClient.del(`user:${username}`);
+  if (token) {
+    await redisClient.del(`session:${token}`);
+    await redisClient.set(`blacklist:${token}`, "true", "EX", 86400);
+  }
+
   return prismaClient.user.update({
     where: {
       username,

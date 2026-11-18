@@ -22,7 +22,13 @@ Accept: application/json
 ###
 
 GET http://localhost:3000/api/users/me
-Authorization: 2a12ddb9-1200-4b49-9162-f10ae119ac6b
+Authorization: test
+Accept: application/json
+
+###
+
+GET http://localhost:3000/api/users/me
+Authorization: test
 Accept: application/json
 
 ###
@@ -44,6 +50,12 @@ Accept: application/json
 
 ###
 
+GET http://localhost:3000/api/users/me
+Authorization: test
+Accept: application/json
+
+###
+
 POST http://localhost:3000/api/contacts
 Authorization: test
 Content-Type: application/json
@@ -55,6 +67,12 @@ Accept: application/json
   "email": "baratrahjaga@gmail.com",
   "phone": "081235667629"
 }
+
+###
+
+GET http://localhost:3000/api/contacts/1
+Authorization: test
+Accept: application/json
 
 ###
 
@@ -135,3 +153,13 @@ Accept: application/json
 DELETE http://localhost:3000/api/contacts/1/addresses/1
 Authorization: test
 Accept: application/json
+
+
+###
+
+GET http://localhost:3000/api-docs.json
+Accept: application/json
+
+###
+
+GET http://localhost:3000/api-docs/
