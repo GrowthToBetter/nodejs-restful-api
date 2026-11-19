@@ -17,10 +17,6 @@ addressRouter.put(
   "/api/contacts/:contactId/addresses/:addressId",
   addressController.update,
 );
-addressRouter.put(
-  "/api/contacts/:contactId/adresses/:addressId",
-  addressController.update,
-);
 addressRouter.patch(
   "/api/contacts/:contactId/addresses/:addressId",
   addressController.update,

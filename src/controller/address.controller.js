@@ -2,7 +2,7 @@ import addressService from "../service/address.service.js";
 
 const create = async (req, res, next) => {
   try {
-    const contactId = parseInt(req.params.contactId || req.params.contactsId);
+    const contactId = parseInt(req.params.contactId);
     const result = await addressService.create(req.user, contactId, req.body);
     res.status(201).json({
       data: result,
@@ -15,8 +15,8 @@ const create = async (req, res, next) => {
 
 const get = async (req, res, next) => {
   try {
-    const contactId = parseInt(req.params.contactId || req.params.contactsId);
-    const addressId = parseInt(req.params.addressId || req.params.addressesId);
+    const contactId = parseInt(req.params.contactId);
+    const addressId = parseInt(req.params.addressId);
     const result = await addressService.get(req.user, contactId, addressId);
     res.status(200).json({
       data: result,
@@ -29,8 +29,8 @@ const get = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const contactId = parseInt(req.params.contactId || req.params.contactsId);
-    const addressId = parseInt(req.params.addressId || req.params.addressesId);
+    const contactId = parseInt(req.params.contactId);
+    const addressId = parseInt(req.params.addressId);
     const result = await addressService.update(
       req.user,
       contactId,
@@ -48,13 +48,10 @@ const update = async (req, res, next) => {
 
 const remove = async (req, res, next) => {
   try {
-    const contactId = parseInt(req.params.contactId || req.params.contactsId);
-    const addressId = parseInt(req.params.addressId || req.params.addressesId);
-    const result = await addressService.remove(req.user, contactId, addressId);
-    res.status(204).json({
-      data: result,
-      message: "data delete successfully",
-    });
+    const contactId = parseInt(req.params.contactId);
+    const addressId = parseInt(req.params.addressId);
+    await addressService.remove(req.user, contactId, addressId);
+    res.status(204).end();
   } catch (e) {
     next(e);
   }
@@ -62,7 +59,7 @@ const remove = async (req, res, next) => {
 
 const list = async (req, res, next) => {
   try {
-    const contactId = parseInt(req.params.contactId || req.params.contactsId);
+    const contactId = parseInt(req.params.contactId);
     const result = await addressService.list(req.user, contactId);
     res.status(200).json({
       data: result,

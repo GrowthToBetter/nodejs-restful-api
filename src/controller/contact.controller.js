@@ -37,13 +37,11 @@ const update = async (req, res, next) => {
 
 const remove = async (req, res, next) => {
   try {
-    const contact = await contactService.remove(
+    await contactService.remove(
       req.user,
       parseInt(req.params.id),
     );
-    res
-      .status(204)
-      .json({ data: contact, message: "Contact deleted successfully" });
+    res.status(204).end();
   } catch (e) {
     next(e);
   }
