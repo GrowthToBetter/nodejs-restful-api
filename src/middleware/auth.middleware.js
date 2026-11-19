@@ -1,10 +1,11 @@
 import { prismaClient } from "../web/database.js";
 import { redisClient } from "../web/redis.js";
+import { ResponseError } from "../error/response.error.js";
 
 export const authMiddleware = async (req, res, next) => {
   const token = req.get("Authorization");
   if (!token) {
-    return res.status(401).json({ message: "Unauthorized" }).end();
+    return next(new ResponseError(401, "Unauthorized"));
   }
 
   const isBlacklisted = await redisClient.get(`blacklist:${token}`);
@@ -28,7 +29,7 @@ export const authMiddleware = async (req, res, next) => {
   });
 
   if (!user) {
-    return res.status(401).json({ message: "Unauthorized" }).end();
+    return next(new ResponseError(401, "Unauthorized"));
   }
 
   await redisClient.set(`session:${token}`, user.username, "EX", 86400);

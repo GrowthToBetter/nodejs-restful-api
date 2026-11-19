@@ -176,18 +176,21 @@ const search = async (user, request) => {
       },
     });
   }
-  const contacts = await prismaClient.contact.findMany({
-    where: {
-      AND: filters,
-    },
-    take: request.size,
-    skip: skip,
-  });
-  const totalItems = await prismaClient.contact.count({
-    where: {
-      AND: filters,
-    },
-  });
+
+  const [contacts, totalItems] = await prismaClient.$transaction([
+    prismaClient.contact.findMany({
+      where: {
+        AND: filters,
+      },
+      take: request.size,
+      skip: skip,
+    }),
+    prismaClient.contact.count({
+      where: {
+        AND: filters,
+      },
+    }),
+  ]);
 
   return toContactSearchResponse(
     contacts,

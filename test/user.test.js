@@ -4,7 +4,6 @@ import { prismaClient } from "../src/web/database.js";
 import { createTestUser, removeTestUser } from "./util-test.js";
 
 describe("POST /api/users", () => {
-
   afterEach(async () => {
     await removeTestUser();
   });
@@ -44,8 +43,6 @@ describe("POST /api/users", () => {
       username: "",
       password: "",
     });
-    console.log("STATUS:", response.status);
-    console.log("BODY:", JSON.stringify(response.body, null, 2));
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty("errors");
   });
@@ -82,7 +79,6 @@ describe("POST /api/users/login", () => {
 });
 
 describe("GET /api/users/me", () => {
-
   beforeEach(async () => {
     await createTestUser();
   });
@@ -107,8 +103,7 @@ describe("GET /api/users/me", () => {
   });
 });
 
-describe("PATCH /api/users", () => {
-
+describe("PATCH /api/users/me", () => {
   beforeEach(async () => {
     await createTestUser();
   });
@@ -119,11 +114,10 @@ describe("PATCH /api/users", () => {
 
   it("should update current user information", async () => {
     const response = await request(app)
-      .patch("/api/users")
+      .patch("/api/users/me")
       .set("Authorization", "test")
       .send({
         name: "Updated Name",
-        username: "test",
       });
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("data");
@@ -131,26 +125,24 @@ describe("PATCH /api/users", () => {
   });
 
   it("should reject if not authenticated", async () => {
-    const response = await request(app).patch("/api/users");
+    const response = await request(app).patch("/api/users/me");
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty("message", "Unauthorized");
   });
 
   it("should update password", async () => {
     const response = await request(app)
-      .patch("/api/users")
+      .patch("/api/users/me")
       .set("Authorization", "test")
       .send({
         password: "newpassword123",
-        username: "test",
       });
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("data");
   });
 });
 
-describe("POST /api/users/logout", () => {
-
+describe("DELETE /api/users/logout", () => {
   beforeEach(async () => {
     await createTestUser();
   });
@@ -161,14 +153,14 @@ describe("POST /api/users/logout", () => {
 
   it("should logout current user", async () => {
     const response = await request(app)
-      .post("/api/users/logout")
+      .delete("/api/users/logout")
       .set("Authorization", "test");
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("data");
   });
-  
+
   it("should reject if not authenticated", async () => {
-    const response = await request(app).post("/api/users/logout");
+    const response = await request(app).delete("/api/users/logout");
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty("message", "Unauthorized");
   });

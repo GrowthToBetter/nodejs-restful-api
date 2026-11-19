@@ -152,6 +152,22 @@ describe("PUT /api/contacts/:contactId/addresses/:addressId", () => {
     expect(response.body.data.postal_code).toBe("12345");
   });
 
+  it("should update an address with optional country and postal code", async () => {
+    const contact = await getTestContact();
+    const address = await getTestAddress();
+    const response = await request(app)
+      .put(`/api/contacts/${contact.id}/addresses/${address.id}`)
+      .set("Authorization", "testcontact")
+      .send({
+        street: "jl sudirman baru",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("data");
+    expect(response.body.data.id).toBe(address.id);
+    expect(response.body.data.street).toBe("jl sudirman baru");
+  });
+
   it("should reject if request is invalid", async () => {
     const contact = await getTestContact();
     const address = await getTestAddress();

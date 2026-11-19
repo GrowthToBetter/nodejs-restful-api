@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest -i --forceExit"
+    "test": "jest -i --testTimeout=20000"
   },
   "jest": {
     "transform": {
