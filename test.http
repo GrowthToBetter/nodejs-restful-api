@@ -1,0 +1,137 @@
+POST http://localhost:3000/api/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "baratrahjaga",
+  "password": "password123",
+  "name": "Jean R"
+}
+
+###
+
+POST http://localhost:3000/api/users/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "baratrahjaga",
+  "password": "password123"
+}
+
+###
+
+GET http://localhost:3000/api/users/me
+Authorization: 2a12ddb9-1200-4b49-9162-f10ae119ac6b
+Accept: application/json
+
+###
+
+PATCH http://localhost:3000/api/users/me
+Authorization: test
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Jean Rantabaratrahjaga"
+}
+
+###
+
+DELETE http://localhost:3000/api/users/logout
+Authorization: test
+Accept: application/json
+
+###
+
+POST http://localhost:3000/api/contacts
+Authorization: test
+Content-Type: application/json
+Accept: application/json
+
+{
+  "first_name": "Jean",
+  "last_name": "Rantabaratrahjaga",
+  "email": "baratrahjaga@gmail.com",
+  "phone": "081235667629"
+}
+
+###
+
+GET http://localhost:3000/api/contacts/1
+Authorization: test
+Accept: application/json
+
+###
+
+PATCH http://localhost:3000/api/contacts/1
+Authorization: test
+Content-Type: application/json
+Accept: application/json
+
+{
+  "first_name": "Jean",
+  "last_name": "Rantabaratrahjaga",
+  "email": "baratrahjaga@gmail.com",
+  "phone": "081235667629"
+}
+
+###
+
+GET http://localhost:3000/api/contacts?name=Jean&page=1&size=10
+Authorization: test
+Accept: application/json
+
+###
+
+DELETE http://localhost:3000/api/contacts/1
+Authorization: test
+Accept: application/json
+
+###
+
+POST http://localhost:3000/api/contacts/1/addresses
+Authorization: test
+Content-Type: application/json
+Accept: application/json
+
+{
+  "street": "jl danur wenda 3",
+  "city": "malang",
+  "province": "jatim",
+  "country": "indonesia",
+  "postal_code": "65362"
+}
+
+###
+
+GET http://localhost:3000/api/contacts/1/addresses/1
+Authorization: test
+Accept: application/json
+
+###
+
+PUT http://localhost:3000/api/contacts/1/addresses/1
+Authorization: test
+Content-Type: application/json
+Accept: application/json
+
+{
+  "street": "jl danur wenda 3",
+  "city": "malang",
+  "province": "jatim",
+  "country": "indonesia",
+  "postal_code": "65362"
+}
+
+###
+
+GET http://localhost:3000/api/contacts/1/addresses
+Authorization: test
+Accept: application/json
+
+###
+
+DELETE http://localhost:3000/api/contacts/1/addresses/1
+Authorization: test
+Accept: application/json
