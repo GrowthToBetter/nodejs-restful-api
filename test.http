@@ -135,3 +135,13 @@ Accept: application/json
 DELETE http://localhost:3000/api/contacts/1/addresses/1
 Authorization: test
 Accept: application/json
+
+
+###
+
+GET http://localhost:3000/api-docs.json
+Accept: application/json
+
+###
+
+GET http://localhost:3000/api-docs/
