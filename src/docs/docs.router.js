@@ -18,6 +18,11 @@ docsRouter.post("/api-docs/login", async (req, res) => {
       httpOnly: true,
       sameSite: "lax",
     });
+    res.cookie("api_token", result.token, {
+      path: "/api-docs",
+      httpOnly: false,
+      sameSite: "lax",
+    });
 
     if (req.headers["content-type"]?.includes("application/json")) {
       return res.json({ status: "success", redirect: "/api-docs" });
@@ -35,5 +40,6 @@ docsRouter.post("/api-docs/login", async (req, res) => {
 
 docsRouter.get("/api-docs/logout", (req, res) => {
   res.clearCookie("docs_token", { path: "/api-docs" });
+  res.clearCookie("api_token", { path: "/api-docs" });
   res.redirect("/api-docs/login");
 });

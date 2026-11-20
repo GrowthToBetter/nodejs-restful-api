@@ -276,6 +276,16 @@ export const swaggerUiOptions = {
   `,
   customJsStr: `
     (function() {
+      function initSwaggerAuth() {
+        const match = document.cookie.match(/api_token=([^;]+)/);
+        const token = match ? decodeURIComponent(match[1]) : null;
+        if (token && window.ui && typeof window.ui.preauthorizeApiKey === 'function') {
+          window.ui.preauthorizeApiKey('ApiKeyAuth', token);
+          return true;
+        }
+        return false;
+      }
+
       function mountLogout() {
         const topbar = document.querySelector('.topbar-wrapper') || document.querySelector('.topbar');
         if (topbar && !document.getElementById('docs-logout-btn')) {
@@ -290,14 +300,15 @@ export const swaggerUiOptions = {
         return false;
       }
 
-      if (!mountLogout()) {
-        const timer = setInterval(() => {
-          if (mountLogout()) {
-            clearInterval(timer);
-          }
-        }, 100);
-        setTimeout(() => clearInterval(timer), 6000);
-      }
+      let count = 0;
+      const timer = setInterval(() => {
+        count++;
+        initSwaggerAuth();
+        mountLogout();
+        if (count > 40) {
+          clearInterval(timer);
+        }
+      }, 150);
     })();
   `,
   swaggerOptions: {
