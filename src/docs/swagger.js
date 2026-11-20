@@ -237,3 +237,55 @@ const options = {
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
+
+export const swaggerUiOptions = {
+  customCss: `
+    .swagger-ui .info .title {
+      border-bottom: 4px solid #facc15;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+    .swagger-ui .topbar {
+      background-color: #1b1b1b;
+    }
+    .swagger-ui .topbar-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .swagger-ui-logout-btn {
+      background-color: #ef4444;
+      color: #ffffff !important;
+      text-decoration: none !important;
+      padding: 6px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-left: auto;
+      margin-right: 16px;
+      transition: background-color 0.2s;
+    }
+    .swagger-ui-logout-btn:hover {
+      background-color: #dc2626;
+    }
+  `,
+  customJsStr: `
+    window.addEventListener('DOMContentLoaded', () => {
+      const topbar = document.querySelector('.topbar-wrapper');
+      if (topbar && !document.getElementById('docs-logout-btn')) {
+        const link = document.createElement('a');
+        link.id = 'docs-logout-btn';
+        link.href = '/api-docs/logout';
+        link.className = 'swagger-ui-logout-btn';
+        link.textContent = 'Logout';
+        topbar.appendChild(link);
+      }
+    });
+  `,
+  swaggerOptions: {
+    persistAuthorization: true,
+    filter: true,
+  },
+  customSiteTitle: "Node RESTful API Documentation",
+};

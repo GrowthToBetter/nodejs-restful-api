@@ -32,6 +32,18 @@ describe("Swagger OpenAPI Documentation", () => {
     }
   });
 
+  it("should serve docs login page at /api-docs/login", async () => {
+    const response = await request(app).get("/api-docs/login");
+    expect(response.status).toBe(200);
+    expect(response.text).toContain("SIGN IN - NODE RESTFUL API");
+  });
+
+  it("should redirect to login on /api-docs/logout", async () => {
+    const response = await request(app).get("/api-docs/logout");
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe("/api-docs/login");
+  });
+
   it("should document 200, 400, 401, 500 schemas across endpoints", async () => {
     const response = await request(app).get("/api-docs.json");
     expect(response.status).toBe(200);
