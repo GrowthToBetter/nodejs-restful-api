@@ -4,9 +4,27 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const addressRouter = express.Router();
 addressRouter.use(authMiddleware);
-
 /**
- * @openapi b
+ * @openapi
+ * /api/contacts/{contactId}/addresses:
+ *   post:
+ *     summary: Create address for a contact
+ *     tags:
+ *       - Address
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: contactId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Contact ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
  *             $ref: '#/components/schemas/AddressCreateRequest'
  *     responses:
  *       201:
