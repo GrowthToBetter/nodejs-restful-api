@@ -264,6 +264,10 @@ export const swaggerUiOptions = {
       font-weight: 600;
       margin-left: auto;
       margin-right: 16px;
+      display: inline-block;
+      line-height: 20px;
+      cursor: pointer;
+      z-index: 999;
       transition: background-color 0.2s;
     }
     .swagger-ui-logout-btn:hover {
@@ -271,17 +275,30 @@ export const swaggerUiOptions = {
     }
   `,
   customJsStr: `
-    window.addEventListener('DOMContentLoaded', () => {
-      const topbar = document.querySelector('.topbar-wrapper');
-      if (topbar && !document.getElementById('docs-logout-btn')) {
-        const link = document.createElement('a');
-        link.id = 'docs-logout-btn';
-        link.href = '/api-docs/logout';
-        link.className = 'swagger-ui-logout-btn';
-        link.textContent = 'Logout';
-        topbar.appendChild(link);
+    (function() {
+      function mountLogout() {
+        const topbar = document.querySelector('.topbar-wrapper') || document.querySelector('.topbar');
+        if (topbar && !document.getElementById('docs-logout-btn')) {
+          const link = document.createElement('a');
+          link.id = 'docs-logout-btn';
+          link.href = '/api-docs/logout';
+          link.className = 'swagger-ui-logout-btn';
+          link.textContent = 'Logout';
+          topbar.appendChild(link);
+          return true;
+        }
+        return false;
       }
-    });
+
+      if (!mountLogout()) {
+        const timer = setInterval(() => {
+          if (mountLogout()) {
+            clearInterval(timer);
+          }
+        }, 100);
+        setTimeout(() => clearInterval(timer), 6000);
+      }
+    })();
   `,
   swaggerOptions: {
     persistAuthorization: true,
